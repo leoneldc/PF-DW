@@ -1,0 +1,25 @@
+.edicion{
+  height: 91vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.infoBlock{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+.photoTitle{
+  width: 100%;
+  text-align: center;
+}
+.photoImg{
+  width: 100%;
+  height: 50vh;
+  object-fit: cover;
+}
+.clickeado{
+  display: none;
+}
