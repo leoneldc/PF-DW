@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../../config/firebase/connection";
 import useAuthContext from "../../hooks/useAuthContext";
@@ -43,18 +42,4 @@ function Home(params) {
     </div>
   );
 }
-/*
-<div className="post" key={index}>
-                  <img
-                    src={datos.link}
-                    className="post-image"
-                    alt={datos.title}
-                  />
-                  <span className="post-overlay">
-                    <p>
-                      <span className="post-likes">{datos.title}</span>
-                    </p>
-                  </span>
-                </div>
-*/
 export default Home;

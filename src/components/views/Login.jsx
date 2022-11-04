@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { collection, getDocs, addDoc } from "firebase/firestore";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  addDoc,
+} from "firebase/firestore";
+import md5 from 'md5';
 import useAuthContext from "../../hooks/useAuthContext";
 import { db } from "../../config/firebase/connection";
 import toast, { Toaster } from "react-hot-toast";
@@ -35,21 +42,11 @@ const errorlogin = () =>
   });
 
 function Login(params) {
-  
-  const [user, setUser] = useState("");
+  const [lUser, setUser] = useState("");
   const [password, setPassword] = useState("");
   const [data, setData] = useState([]);
   const usersCollection = collection(db, "Usuarios");
   const { login, usernameAuth } = useAuthContext();
-  var match = 0;
-
-  async function getPersonajes() {
-    const dataDB = await getDocs(usersCollection);
-    setData(dataDB.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
-  }
-  useEffect(() => {
-    getPersonajes();
-  }, []);
 
   function handleUserChange(event) {
     setUser(event.target.value);
@@ -59,31 +56,11 @@ function Login(params) {
   }
   function handleSubmit(event) {
     event.preventDefault();
-    data.map((datos) => {
-      if (user === datos.username && password === datos.password) {
-        usernameAuth(datos.username);
-        match = 1;
-        login();
-      }
-    });
-    return match < 1 ? errorlogin() : null;
+    validateAuth();
   }
   async function registerNU(event) {
     event.preventDefault();
-    let existeUsuario = false;
-    data.map((datos) => {
-      if (user === datos.username) {
-        existeUsuario = true;
-        error();
-      }
-    });
-    if (!existeUsuario) {
-      await addDoc(usersCollection, { username: user, password: password });
-      getPersonajes();
-      setUser("");
-      setPassword("");
-      success();
-    }
+    validateUser();
   }
   function styleSU() {
     const container = document.getElementById("container");
@@ -98,6 +75,32 @@ function Login(params) {
     setPassword("");
   }
 
+  const validateAuth = async () => {
+    const userRef = query(usersCollection, where("username", "==", lUser));
+    const findUsers = await getDocs(userRef);
+    findUsers.forEach(async (user) => {
+      if (lUser === user.data().username) {
+        if (md5(password) === user.data().password) {
+          usernameAuth(lUser);
+          return login();
+        }
+      }
+    });
+    return errorlogin();
+  };
+
+  const validateUser = async () => {
+    let encontrado = false;
+    const userRef = query(usersCollection, where("username", "==", lUser));
+    const findUsers = await getDocs(userRef);
+    findUsers.forEach(async (user) => {
+      if (lUser === user.data().username) {
+        encontrado = true;
+      }
+    });
+    return encontrado == true ? error() : await addDoc(usersCollection, { username: lUser, password: md5(password) }) + setUser("") + setPassword("") + success();
+  };
+
   return (
     <div className="login">
       <div className="container" id="container">
@@ -107,7 +110,7 @@ function Login(params) {
             <input
               required
               onChange={handleUserChange}
-              value={user}
+              value={lUser}
               type="username"
               placeholder="Username"
             />
@@ -128,7 +131,7 @@ function Login(params) {
               required
               type="username"
               onChange={handleUserChange}
-              value={user}
+              value={lUser}
               placeholder="Username"
             />
             <input
